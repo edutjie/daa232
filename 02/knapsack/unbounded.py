@@ -60,17 +60,18 @@ class BranchBoundUnboundedKnapsack:
 
         self.M = np.empty((len(self.N), self.W))
 
-        i = 0
-        x1 = int(np.floor(self.W / self.w[i]))
-        W_prime = self.W - self.w[i] * x1
-        V_N = self.v[i] * x1
-        U = self.calculate_U(W_prime, V_N, i)
+        x1 = int(np.floor(self.W / self.w[0]))
+        x_current[0] = x1
+        W_prime = self.W - self.w[0] * x1
+        V_N = self.v[0] * x1
+        U = self.calculate_U(W_prime, V_N, 0)
         m = []
         for i in range(len(self.N)):
             min_mi = min([self.w[j] for j in range(i + 1, len(self.N))], default=np.inf)
             m.append(min_mi)
 
         # branching
+        i = 0
         command = 2
         while True:
             if command == 2:
