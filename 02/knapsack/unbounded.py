@@ -82,7 +82,9 @@ class BranchBoundUnboundedKnapsack:
                     i, x_current, W_prime, V_N, m
                 )
             elif command == 4:
-                ...  # not used
+                i, x_current, W_prime, V_N, command = self.replace(
+                    i, x_current, W_prime, V_N, m
+                )
             else:
                 break
 
@@ -126,8 +128,8 @@ class BranchBoundUnboundedKnapsack:
         V_N,
         m,
     ) -> tuple[int, list[int], int, int, int]:
+        # Backtrack
         while True:
-            # Backtrack
             j = self.find_max_j(x_current, i)
             if j < 0:
                 return (i, x_current, W_prime, V_N, 5)
@@ -145,6 +147,48 @@ class BranchBoundUnboundedKnapsack:
                 W_prime += self.w[i] * x_current[i]
                 x_current[i] = 0
             elif W_prime >= m[i]:
+                return (i, x_current, W_prime, V_N, 2)
+            else:
+                return (i, x_current, W_prime, V_N, 4)
+
+    def replace(
+        self,
+        i,
+        x_current,
+        W_prime,
+        V_N,
+        m,
+    ) -> tuple[int, list[int], int, int, int]:
+        # Replace a jth item with an hth item
+        j = i
+        h = j + 1
+        while True:
+            if self.z_best >= V_N + np.floor(W_prime * self.v[h] / self.w[h]):
+                return (i, x_current, W_prime, V_N, 3)
+            if self.w[h] >= self.w[j]:
+                if (
+                    self.w[h] == self.w[j]
+                    or self.w[h] > W_prime
+                    or self.z_best >= V_N + self.v[h]
+                ):
+                    h += 1
+                    continue
+                self.z_best = V_N + self.v[h]
+                self.x_best = np.copy(x_current)
+                x_current[h] = 1
+                U_h = self.calculate_U(W_prime, V_N, h)
+                if self.z_best == U_h:
+                    break
+                j = h
+                h += 1
+            else:
+                if W_prime - self.w[h] < m[h - 1]:
+                    h += 1
+                    continue
+                i = h
+                x_current[i] = int(np.floor(W_prime / self.w[i]))
+                V_N += self.v[i] * x_current[i]
+                W_prime -= self.w[i] * x_current[i]
                 return (i, x_current, W_prime, V_N, 2)
 
     def calculate_U(self, W_prime, V_N, i) -> int:
